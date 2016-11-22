@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>操作画面</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+<style type="text/css">
+.circle {
+  display: inline-block;
+  text-align: center;
+  width: 70%;
+  border-radius: 50%;
+  border: 2px solid #1d2087;
+}
+ul li{
+  float: left;
+  list-style: none;
+  padding: 5px;
+}
+/* ラジオボタンは非表示にする */
+input[type=radio] {
+  display: none; 
+}
+/* チェックされた時のスタイル */
+input[type="radio"]:checked + label {
+  background: #0063A4;
+  color: #FFF; 
+}
+/* マウスオーバーしたときのスタイル */
+.label:hover {
+  background-color: #E2EDF9; 
+}
+/* lableのスタイル */
+.label {
+  color: #000;
+  border: #dddddd solid 2px;
+  display: block;
+  height: 20%;
+  line-height: 45px;
+  padding-left: 20px;
+  padding-right: 20px;
+  cursor: pointer;
+}
+</style>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+</head>
+<body>
+	<div class="container">
+	  <div class="row">
+	    <div class="col-sm-12 text-center">
+	      <div class="btn-group" data-toggle="buttons">  
+		<label class="btn btn-primary btn-lg">
+		  <input type="radio" autocomplete="off" value="1" name="carNo"> 1
+		</label>
+		<label class="btn btn-primary btn-lg">
+		  <input type="radio" autocomplete="off" value="2" name="carNo"> 2
+		</label>
+		<label class="btn btn-primary btn-lg">
+		  <input type="radio" autocomplete="off" value="3" name="carNo"> 3
+		</label>
+		<label class="btn btn-primary btn-lg">
+		  <input type="radio" autocomplete="off" value="4" name="carNo"> 4
+		</label>
+	      </div>
+	    </div>
+	    <br>
+	    <div class="col-sm-12 text-center">
+	      <div class="circle">
+	      </div>
+	    </div>
+	  </div>
+	</div>
+<script type="text/javascript">
+var flag = false;
+var socketFlag = false;
+var carNo;
+var speed = 0;
+var handle = 0;
+
+var url = "ws://localhost:8080/arduino/client";
+var ws = new WebSocket(url);
+
+ws.onopen = function(status){
+    socketFlag = true;
+    console.log(status);
+}
+
+if ($(window).width() > $(window).height()) {
+    $(".circle").height($(window).height() * 0.7);
+    $(".circle").width($(".circle").height());
+} else {
+    $(".circle").width($(window).width() * 0.7);
+    $(".circle").height($(".circle").width());
+}
+
+$(window).resize(function() {
+    if ($(window).width() > $(window).height()) {
+        $(".circle").height($(window).height() * 0.7);
+        $(".circle").width($(".circle").height());
+    } else {
+        $(".circle").width($(window).width() * 0.7);
+        $(".circle").height($(".circle").width());
+    }
+});
+
+$("input[name='carNo']").change(function(){
+    carNo = $("input[name='carNo']:checked").val();
+});
+
+$(".circle").mousedown(function(){
+    if(!(typeof carNo === "undefined")) {
+        flag = true;
+    }
+}).mouseleave(function(){
+	if(!flag){
+		return;
+	}
+        flag = false;
+        speed = 0;
+        handle = 0;
+
+	var json = {"carNo":carNo, "speed":speed, "handle":handle}
+        console.log(json);
+        if(socketFlag) {
+            ws.send(json);
+        }
+}).mouseup(function(){
+	if(!flag){
+		return;
+	}
+	flag = false;
+        speed = 0;
+        handle = 0;
+
+	var json = {"carNo":carNo, "speed":speed, "handle":handle}
+        console.log(json);
+        if(socketFlag) {
+            ws.send(json);
+        }
+}).mousemove(function(e){
+    if(!flag){
+        return;
+    }
+
+    var x = (e.offsetX - $(this).width() / 2) / $(this).width() * 10;
+    var y = ($(this).height() / 2 - e.offsetY) / $(this).height() * 10;
+
+    var tempSpeed = Math.round((Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))));
+    if (y < 0) {
+        tempSpeed = -1;
+    }
+
+    var tempHandle = Math.round(Math.atan2(x, Math.abs(y))/Math.PI * 10);
+    if (tempHandle == -0) {
+        tempHandle = 0;
+    }
+
+    if(tempSpeed != speed || tempHandle != handle){
+        speed = tempSpeed;
+        handle = tempHandle;
+
+	var json = {"carNo":carNo, "speed":speed, "handle":handle}
+        console.log(json);
+        if(socketFlag) {
+            ws.send(json);
+        }
+    }
+});
+</script>
+</body>
+</html>
