@@ -126,7 +126,7 @@ $(".circle").mousedown(function(){
 	var json = {"carNo":carNo, "speed":speed, "handle":handle}
         console.log(json);
         if(socketFlag) {
-            ws.send(json);
+            ws.send(JSON.stringify(json));
         }
 }).mouseup(function(){
 	if(!flag){
@@ -139,7 +139,7 @@ $(".circle").mousedown(function(){
 	var json = {"carNo":carNo, "speed":speed, "handle":handle}
         console.log(json);
         if(socketFlag) {
-            ws.send(json);
+        	ws.send(JSON.stringify(json));
         }
 }).mousemove(function(e){
     if(!flag){
@@ -166,7 +166,7 @@ $(".circle").mousedown(function(){
 	var json = {"carNo":carNo, "speed":speed, "handle":handle}
         console.log(json);
         if(socketFlag) {
-            ws.send(json);
+        	ws.send(JSON.stringify(json));
         }
     }
 });
