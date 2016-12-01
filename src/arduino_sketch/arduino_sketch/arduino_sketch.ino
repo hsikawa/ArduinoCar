@@ -18,21 +18,13 @@ void setup() {
 }
 
 void loop() {
-  speedCntrol(1);
-  speedCntrol(0);
-  speedCntrol(-1);
+//  speedCntrol(1);
+//  speedCntrol(0);
+//  speedCntrol(-1);
 
   servoControl(0);
-  servoControl(1);
-  servoControl(2);
-  servoControl(3);
-  servoControl(4);
   servoControl(5);
   servoControl(0);
-  servoControl(-1);
-  servoControl(-2);
-  servoControl(-3);
-  servoControl(-4);
   servoControl(-5);
 }
 
@@ -46,10 +38,10 @@ void speedCntrol(int num) {
   boolean rightPin = LOW;
   int speed = abs(num) * 10;
 
-  if (speed < 0) {
+  if (num < 0) {
       leftPin = LOW;
       rightPin = HIGH;
-  } else if (speed == 0) {
+  } else if (num == 0) {
       leftPin = LOW;
       rightPin = LOW;
   }
@@ -70,7 +62,7 @@ void speedCntrol(int num) {
  * @param num
  */
 void servoControl(int num) {
-  int angle = 90 + (num * 10);
+  int angle = 45 + (num * 8);
   myservo.write(angle);
   delay(2000);
 }
