@@ -21,16 +21,16 @@ ul li{
 }
 /* ラジオボタンは非表示にする */
 input[type=radio] {
-  display: none; 
+  display: none;
 }
 /* チェックされた時のスタイル */
 input[type="radio"]:checked + label {
   background: #0063A4;
-  color: #FFF; 
+  color: #FFF;
 }
 /* マウスオーバーしたときのスタイル */
 .label:hover {
-  background-color: #E2EDF9; 
+  background-color: #E2EDF9;
 }
 /* lableのスタイル */
 .label {
@@ -52,7 +52,7 @@ input[type="radio"]:checked + label {
 	<div class="container">
 	  <div class="row">
 	    <div class="col-sm-12 text-center">
-	      <div class="btn-group" data-toggle="buttons">  
+	      <div class="btn-group" data-toggle="buttons">
 		<label class="btn btn-primary btn-lg">
 		  <input type="radio" autocomplete="off" value="1" name="carNo"> 1
 		</label>
@@ -81,7 +81,7 @@ var carNo;
 var speed = 0;
 var handle = 0;
 
-var url = "ws://localhost:8080/arduino/client";
+var url = "ws://192.168.0.18:8080/arduino/client";
 var ws = new WebSocket(url);
 
 ws.onopen = function(status){
