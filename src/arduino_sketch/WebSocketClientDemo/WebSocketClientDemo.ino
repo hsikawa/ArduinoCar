@@ -6,19 +6,19 @@
 const char* ssid     = "0024A5326C0B";
 const char* password = "1pcem23pnjh2n";
 char path[] = "/";
-char host[] = "192.168.0.21";
+char host[] = "192.168.0.2";
 int port = 3000;
 
 /** サーボ用のオブジェクト. **/
 Servo myservo;
 /** デジタル9番ピンをxxxとして設定. **/
-int MOTOR_LEFT = 9;
+int MOTOR_LEFT = 12;
 /** デジタル10番ピンをxxxとして設定. **/
-int MOTOR_RIGHT = 10;
+int MOTOR_RIGHT = 14;
 /** デジタル3番ピンをxxxとして設定. **/
-int MOTOR_PWM = 3;
+int MOTOR_PWM = 13;
 /** デジタル2番ピンをサーボの角度命令出力ピンとして設定. **/
-int SERVO_PIN = 2;
+int SERVO_PIN = 16;
 
 /** TCP Client use WiFiClient*/
 WiFiClient client;
@@ -35,6 +35,8 @@ void setup() {
   Serial.begin(115200);
   delay(10);
 
+  pinMode(MOTOR_LEFT, OUTPUT);
+  pinMode(MOTOR_RIGHT, OUTPUT);
   // サーボピンの準備
   myservo.attach(SERVO_PIN);
 
@@ -50,6 +52,17 @@ int position = 0;
 String sendData = "aaa";
 
 void loop() {
+  servoControl(5);
+  delay(1000);
+  servoControl(-5);
+  delay(500);
+  speedCntrol(0);
+  delay(500);
+  speedCntrol(3);
+  delay(3000);
+  speedCntrol(0);
+  delay(3000);
+  speedCntrol(-3);
   String recvData = "";
   if (client.connected()) {
     Serial.println("Before getData");
@@ -134,14 +147,16 @@ void connectWebSocket(char host[], int port, char path[]) {
  * @param num 
  */
 void speedCntrol(int num) {
+  Serial.print("Called speedCntrol : ");
+  Serial.println(num);
   boolean leftPin = HIGH;
   boolean rightPin = LOW;
   int speed = abs(num) * 10;
 
-  if (speed < 0) {
+  if (num < 0) {
       leftPin = LOW;
       rightPin = HIGH;
-  } else if (speed == 0) {
+  } else if (num == 0) {
       leftPin = LOW;
       rightPin = LOW;
   }
@@ -149,8 +164,6 @@ void speedCntrol(int num) {
   analogWrite(MOTOR_PWM, speed);
   digitalWrite(MOTOR_LEFT, leftPin);
   digitalWrite(MOTOR_RIGHT, rightPin);
-  
-  delay(2000);
 }
 
 /**
@@ -162,8 +175,9 @@ void speedCntrol(int num) {
  * @param num
  */
 void servoControl(int num) {
+  Serial.print("Called serverControl : ");
+  Serial.println(num);
   int angle = 90 + (num * 10);
   myservo.write(angle);
-  delay(2000);
 }
 
