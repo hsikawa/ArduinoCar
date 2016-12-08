@@ -68,7 +68,7 @@ input[type="radio"]:checked+label {
 	<script type="text/javascript">
 var flag = false;
 var socketFlag = false;
-var carNo;
+var carNo = null;
 var speed = 0;
 var handle = 0;
 
@@ -105,6 +105,7 @@ function open(){
 		alert("接続が切れました");
 		socketFlag = false;
 		flag = false;
+		carNo = null;
 		open();
 	}
 }
@@ -130,7 +131,7 @@ $(window).resize(function() {
 });
 
 $(".circle").mousedown(function(){
-    if(!(typeof carNo === "undefined")) {
+    if(!(carNo == null)) {
         flag = true;
 
 		var json = {"carNo":carNo, "speed":speed, "handle":handle}
@@ -193,7 +194,7 @@ $(".circle").mousedown(function(){
     }
 });
 $(".circle").bind('touchstart',function(){
-    if(!(typeof carNo === "undefined")) {
+    if(!(carNo == null)) {
         flag = true;
 
 		var json = {"carNo":carNo, "speed":speed, "handle":handle}
