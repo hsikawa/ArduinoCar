@@ -5,76 +5,67 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>操作画面</title>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
 <style type="text/css">
 .circle {
-  display: inline-block;
-  text-align: center;
-  width: 70%;
-  border-radius: 50%;
-  border: 2px solid #1d2087;
+	display: inline-block;
+	text-align: center;
+	width: 70%;
+	border-radius: 50%;
+	border: 2px solid #1d2087;
 }
-ul li{
-  float: left;
-  list-style: none;
-  padding: 5px;
+
+ul li {
+	float: left;
+	list-style: none;
+	padding: 5px;
 }
 /* ラジオボタンは非表示にする */
 input[type=radio] {
-  display: none; 
+	display: none;
 }
 /* チェックされた時のスタイル */
-input[type="radio"]:checked + label {
-  background: #0063A4;
-  color: #FFF; 
+input[type="radio"]:checked+label {
+	background: #0063A4;
+	color: #FFF;
 }
 /* マウスオーバーしたときのスタイル */
 .label:hover {
-  background-color: #E2EDF9; 
+	background-color: #E2EDF9;
 }
 /* lableのスタイル */
 .label {
-  color: #000;
-  border: #dddddd solid 2px;
-  display: block;
-  height: 20%;
-  line-height: 45px;
-  padding-left: 20px;
-  padding-right: 20px;
-  cursor: pointer;
+	color: #000;
+	border: #dddddd solid 2px;
+	display: block;
+	height: 20%;
+	line-height: 45px;
+	padding-left: 20px;
+	padding-right: 20px;
+	cursor: pointer;
 }
 </style>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 </head>
 <body>
 	<div class="container">
-	  <div class="row">
-	    <div class="col-sm-12 text-center">
-	      <div class="btn-group" data-toggle="buttons">  
-		<label class="btn btn-primary btn-lg">
-		  <input type="radio" autocomplete="off" value="1" name="carNo"> 1
-		</label>
-		<label class="btn btn-primary btn-lg">
-		  <input type="radio" autocomplete="off" value="2" name="carNo"> 2
-		</label>
-		<label class="btn btn-primary btn-lg">
-		  <input type="radio" autocomplete="off" value="3" name="carNo"> 3
-		</label>
-		<label class="btn btn-primary btn-lg">
-		  <input type="radio" autocomplete="off" value="4" name="carNo"> 4
-		</label>
-	      </div>
-	    </div>
-	    <br>
-	    <div class="col-sm-12 text-center">
-	      <div class="circle">
-	      </div>
-	    </div>
-	  </div>
+		<div class="row">
+			<div class="col-sm-12 text-center">
+				<div class="btn-group" data-toggle="buttons">
+				</div>
+			</div>
+			<br>
+			<div class="col-sm-12 text-center">
+				<div class="circle"></div>
+			</div>
+		</div>
 	</div>
-<script type="text/javascript">
+	<script type="text/javascript">
 var flag = false;
 var socketFlag = false;
 var carNo;
@@ -84,10 +75,27 @@ var handle = 0;
 var url = "ws://localhost:8080/arduino/client";
 var ws = new WebSocket(url);
 
-ws.onopen = function(status){
+ws.onopen = function(){
     socketFlag = true;
-    console.log(status);
 }
+ws.onmessage = function(receive) {
+	var json = JSON.parse(receive.data);
+	for(i=0; i<json.length; i++){
+		for(key in json[i]){
+			var id = "car" + key;
+			if(json[i][key]){
+				$('.btn-group').append('<label id="'+id+'" class="btn btn-primary btn-lg">');
+				$('.btn-group').children('#'+id).append('<input type="radio" autocomplete="off" value="'+key+'" name="carNo" >', key);
+			}
+		}
+	}
+
+	$("input[name='carNo']").change(function(){
+	    carNo = $("input[name='carNo']:checked").val();
+
+	});
+
+};
 
 if ($(window).width() > $(window).height()) {
     $(".circle").height($(window).height() * 0.7);
@@ -105,10 +113,6 @@ $(window).resize(function() {
         $(".circle").width($(window).width() * 0.7);
         $(".circle").height($(".circle").width());
     }
-});
-
-$("input[name='carNo']").change(function(){
-    carNo = $("input[name='carNo']:checked").val();
 });
 
 $(".circle").mousedown(function(){
