@@ -48,9 +48,9 @@ input[type="radio"]:checked+label {
 </style>
 
 <script
-	src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	src="jquery-1.11.1.js"></script>
 <script
-	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	src="bootstrap.min.js"></script>
 </head>
 <body>
 	<div class="container">
@@ -72,30 +72,44 @@ var carNo;
 var speed = 0;
 var handle = 0;
 
-var url = "ws://localhost:8080/arduino/client";
-var ws = new WebSocket(url);
+var url = "ws://" + location.host + "/arduino/client";
+var ws = null;
 
-ws.onopen = function(){
-    socketFlag = true;
-}
-ws.onmessage = function(receive) {
-	var json = JSON.parse(receive.data);
-	for(i=0; i<json.length; i++){
-		for(key in json[i]){
-			var id = "car" + key;
-			if(json[i][key]){
-				$('.btn-group').append('<label id="'+id+'" class="btn btn-primary btn-lg">');
-				$('.btn-group').children('#'+id).append('<input type="radio" autocomplete="off" value="'+key+'" name="carNo" >', key);
+function open(){
+	ws = new WebSocket(url);
+
+	ws.onopen = function(){
+	    socketFlag = true;
+	}
+	ws.onmessage = function(receive) {
+		$('.btn-group').empty();
+		var json = JSON.parse(receive.data);
+		for(i=0; i<json.length; i++){
+			for(key in json[i]){
+				var id = "car" + key;
+				if(json[i][key]){
+					$('.btn-group').append('<label id="'+id+'" class="btn btn-primary btn-lg">');
+					$('.btn-group').children('#'+id).append('<input type="radio" autocomplete="off" value="'+key+'" name="carNo" >', key);
+				}
 			}
 		}
+
+		$("input[name='carNo']").change(function(){
+		    carNo = $("input[name='carNo']:checked").val();
+
+		});
+
+	};
+
+	ws.onclose = function(){
+		alert("接続が切れました");
+		socketFlag = false;
+		flag = false;
+		open();
 	}
+}
 
-	$("input[name='carNo']").change(function(){
-	    carNo = $("input[name='carNo']:checked").val();
-
-	});
-
-};
+open();
 
 if ($(window).width() > $(window).height()) {
     $(".circle").height($(window).height() * 0.7);
@@ -118,6 +132,10 @@ $(window).resize(function() {
 $(".circle").mousedown(function(){
     if(!(typeof carNo === "undefined")) {
         flag = true;
+
+		var json = {"carNo":carNo, "speed":speed, "handle":handle}
+        console.log(json);
+        ws.send(JSON.stringify(json));
     }
 }).mouseleave(function(){
 	if(!flag){
@@ -152,6 +170,56 @@ $(".circle").mousedown(function(){
 
     var x = (e.offsetX - $(this).width() / 2) / $(this).width() * 10;
     var y = ($(this).height() / 2 - e.offsetY) / $(this).height() * 10;
+
+    var tempSpeed = Math.round((Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))));
+    if (y < 0) {
+        tempSpeed = -1;
+    }
+
+    var tempHandle = Math.round(Math.atan2(x, Math.abs(y))/Math.PI * 10);
+    if (tempHandle == -0) {
+        tempHandle = 0;
+    }
+
+    if(tempSpeed != speed || tempHandle != handle){
+        speed = tempSpeed;
+        handle = tempHandle;
+
+	var json = {"carNo":carNo, "speed":speed, "handle":handle}
+        console.log(json);
+        if(socketFlag) {
+        	ws.send(JSON.stringify(json));
+        }
+    }
+});
+$(".circle").bind('touchstart',function(){
+    if(!(typeof carNo === "undefined")) {
+        flag = true;
+
+		var json = {"carNo":carNo, "speed":speed, "handle":handle}
+        console.log(json);
+        ws.send(JSON.stringify(json));
+    }
+}).bind('touchend',function(){
+	if(!flag){
+		return;
+	}
+	flag = false;
+        speed = 0;
+        handle = 0;
+
+	var json = {"carNo":carNo, "speed":speed, "handle":handle}
+        console.log(json);
+        if(socketFlag) {
+        	ws.send(JSON.stringify(json));
+        }
+}).bind('touchmove',function(e){
+    if(!flag){
+        return;
+    }
+
+    var x = (e.originalEvent.changedTouches[0].pageX - $(this).offset().top - $(this).width() / 2) / $(this).width() * 10;
+    var y = ($(this).height() / 2 - e.originalEvent.changedTouches[0].pageY + $(this).offset().left) / $(this).height() * 10;
 
     var tempSpeed = Math.round((Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))));
     if (y < 0) {
