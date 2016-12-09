@@ -131,7 +131,7 @@ $(window).resize(function() {
 });
 
 $(".circle").mousedown(function(){
-    if(!(carNo == null)) {
+    if(carNo != null) {
         flag = true;
 
 		var json = {"carNo":carNo, "speed":speed, "handle":handle}
@@ -194,7 +194,7 @@ $(".circle").mousedown(function(){
     }
 });
 $(".circle").bind('touchstart',function(){
-    if(!(carNo == null)) {
+    if(carNo != null) {
         flag = true;
 
 		var json = {"carNo":carNo, "speed":speed, "handle":handle}
