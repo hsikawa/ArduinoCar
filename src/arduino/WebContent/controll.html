@@ -9,11 +9,29 @@
 	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
 <style type="text/css">
 .circle {
+	position:relative;
 	display: inline-block;
 	text-align: center;
 	width: 70%;
 	border-radius: 50%;
 	border: 2px solid #1d2087;
+}
+
+.cross1 {
+	position:absolute;
+	text-align: center;
+	width: 100%;
+	border-top: 2px solid #1d2087;
+	margin-top: 50%;
+}
+
+.cross2 {
+	position:absolute;
+	text-align: center;
+	height: 100%;
+	border-left: 2px solid #1d2087;
+	margin-top: 0px;
+	margin-left: 50%;
 }
 
 ul li {
@@ -61,7 +79,10 @@ input[type="radio"]:checked+label {
 			</div>
 			<br>
 			<div class="col-sm-12 text-center">
-				<div class="circle"></div>
+				<div class="circle">
+				<div class="cross1"></div>
+				<div class="cross2"></div>
+				</div>
 			</div>
 		</div>
 	</div>
