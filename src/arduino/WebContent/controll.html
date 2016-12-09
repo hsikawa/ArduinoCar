@@ -9,11 +9,30 @@
 	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
 <style type="text/css">
 .circle {
+    position:relative;
 	display: inline-block;
 	text-align: center;
 	width: 70%;
 	border-radius: 50%;
 	border: 2px solid #1d2087;
+	cursor: move;
+}
+
+.cross1 {
+	position:absolute;
+	text-align: center;
+	width: 100%;
+	border-top: 2px solid #1d2087;
+	margin-top: 50%;
+}
+
+.cross2 {
+	position:absolute;
+	text-align: center;
+	height: 100%;
+	border-left: 2px solid #1d2087;
+	margin-top: 0px;
+	margin-left: 50%;
 }
 
 ul li {
@@ -61,7 +80,10 @@ input[type="radio"]:checked+label {
 			</div>
 			<br>
 			<div class="col-sm-12 text-center">
-				<div class="circle"></div>
+				<div class="circle">
+				<div class="cross1"></div>
+				<div class="cross2"></div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -71,6 +93,14 @@ var socketFlag = false;
 var carNo = null;
 var speed = 0;
 var handle = 0;
+var clCode = new Array();
+clCode[0]="#FFFFFF";
+clCode[1]="#F0FFFF";
+clCode[2]="#87CEFA";
+clCode[3]="#FFA07A";
+clCode[4]="#FF69B4";
+clCode[5]="#FF0000";
+
 
 var url = "ws://" + location.host + "/arduino/client";
 var ws = null;
@@ -146,7 +176,8 @@ $(".circle").mousedown(function(){
         speed = 0;
         handle = 0;
 
-	var json = {"carNo":carNo, "speed":speed, "handle":handle}
+	var json = {"carNo":carNo, "speed":speed, "handle":handle};
+	$(".circle").css("background-color", clCode[speed]);
         console.log(json);
         if(socketFlag) {
             ws.send(JSON.stringify(json));
@@ -159,7 +190,10 @@ $(".circle").mousedown(function(){
         speed = 0;
         handle = 0;
 
-	var json = {"carNo":carNo, "speed":speed, "handle":handle}
+
+	var json = {"carNo":carNo, "speed":speed, "handle":handle};
+	$(".circle").css("background-color", clCode[speed]);
+
         console.log(json);
         if(socketFlag) {
         	ws.send(JSON.stringify(json));
@@ -187,12 +221,14 @@ $(".circle").mousedown(function(){
         handle = tempHandle;
 
 	var json = {"carNo":carNo, "speed":speed, "handle":handle}
+	$(".circle").css("background-color", clCode[speed]);
         console.log(json);
         if(socketFlag) {
         	ws.send(JSON.stringify(json));
         }
     }
 });
+
 $(".circle").bind('touchstart',function(){
     if(carNo != null) {
         flag = true;
@@ -243,6 +279,7 @@ $(".circle").bind('touchstart',function(){
         }
     }
 });
+
 </script>
 </body>
 </html>
