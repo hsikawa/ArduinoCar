@@ -1,0 +1,24 @@
+# wifi クライアントのビルドについて
+ESP8266ライブラリはArduinoIDEにインストール済みの前提
+
+1. src/ESP8266-Websocket-master.ZIPをArduino/libraries の配下に展開する
+2. src/arduino_sketch/WebSocketClientDemo をArduino IDE で開く
+2.1. WebSocketサーバのホストandポートを実態に合わせて修正
+
+ line8 : path[] = "/";
+ line9 : char host[] = "192.168.0.2";
+ line10: int port = 3000;
+
+3. WiFIモジュールとUSB接続する→USBをブレッドボートにつけて
+3.1. USBのTXピンからwifiモジュールのRXDピン、USBのRXぴんからwifiモジュールのTXDピンに接続
+3.2. IDE設定
+ツール＞
+a) ボード＞Generic ESP8266 Moduleを選択
+b) Flash Mode > DIO
+c) Flash Frequency > 80MHz
+d) CPU Frequency > 80MHz
+e) Flash Size > 4M(1M SPIFFS)
+f) Debug port > Serial
+g) Debug Level > 全て
+h) Reset Method > nodemcu
+i) Upload speed > 115200

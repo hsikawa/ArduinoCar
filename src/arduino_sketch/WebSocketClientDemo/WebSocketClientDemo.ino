@@ -1,30 +1,107 @@
 #include <ESP8266WiFi.h>
 #include <WebSocketClient.h>
+#include <Servo.h> //サーボモーター用ライブラリ読み込み
+#include <ArduinoJson.h> // JSON parser
 
 const char* ssid     = "0024A5326C0B";
 const char* password = "1pcem23pnjh2n";
 char path[] = "/";
-char host[] = "192.168.11.5";
+char host[] = "192.168.0.2";
 int port = 3000;
-  
+
+/** サーボ用のオブジェクト. **/
+Servo myservo;
+/** デジタル9番ピンをxxxとして設定. **/
+int MOTOR_LEFT = 12;
+/** デジタル10番ピンをxxxとして設定. **/
+int MOTOR_RIGHT = 14;
+/** デジタル3番ピンをxxxとして設定. **/
+int MOTOR_PWM = 13;
+/** デジタル2番ピンをサーボの角度命令出力ピンとして設定. **/
+int SERVO_PIN = 16;
+
+/** TCP Client use WiFiClient*/
+WiFiClient client;
+/** WebSocket クライアント */
 WebSocketClient webSocketClient;
 
-// Use WiFiClient class to create TCP connections
-WiFiClient client;
+/** JSONパース用バッファ */
+StaticJsonBuffer<200> jsonBuffer;
+// 
+const char* JSON_SPEED_KEY = "speed";
+const char* JSON_HANDLE_KEY = "handle";
 
 void setup() {
   Serial.begin(115200);
   delay(10);
 
-  // We start by connecting to a WiFi network
+  pinMode(MOTOR_LEFT, OUTPUT);
+  pinMode(MOTOR_RIGHT, OUTPUT);
+  // サーボピンの準備
+  myservo.attach(SERVO_PIN);
 
-  Serial.println();
+  // Connect WiFi
+  connectWifi(ssid, password);
+  delay(2000);
+
+  // Connect WebSocket
+  connectWebSocket(host, port, path);
+}
+
+int position = 0;
+String sendData = "aaa";
+
+void loop() {
+  servoControl(5);
+  delay(1000);
+  servoControl(-5);
+  delay(500);
+  speedCntrol(0);
+  delay(500);
+  speedCntrol(3);
+  delay(3000);
+  speedCntrol(0);
+  delay(3000);
+  speedCntrol(-3);
+  String recvData = "";
+  if (client.connected()) {
+    Serial.println("Before getData");
+    webSocketClient.getData(recvData);
+    if (recvData.length() > 0) {
+      Serial.print("Received data: ");
+      Serial.println(recvData);
+      // parse to json.
+      JsonObject& root = jsonBuffer.parseObject(recvData);
+      int servo = root[JSON_HANDLE_KEY];
+      Serial.print("Servo control = ");
+      Serial.println(servo);
+      servoControl(servo);
+      int speed = root[JSON_SPEED_KEY];
+      Serial.print("Motor speed = ");
+      Serial.println(speed);
+      speedCntrol(speed);
+    }
+  } else {
+    Serial.println("Client disconnected.");
+    while (1) {
+      // Hang on disconnect.
+    }
+  }
+
+  // wait to fully let the client disconnect
+  delay(3000);
+  position++;
+}
+
+/**
+ * WiFi接続
+ */
+void connectWifi(const char* ssid, const char* pass) {
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
   
   WiFi.begin(ssid, password);
-  
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -34,13 +111,16 @@ void setup() {
   Serial.println("WiFi connected");  
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+}
 
-  delay(5000);
-  
-
+/**
+ * WebSocket接続を行う
+ */
+void connectWebSocket(char host[], int port, char path[]) {
+  Serial.println("connectWebSocket start.");
   // Connect to the websocket server
   if (client.connect(host, port)) {
-    Serial.println("Connected");
+    Serial.println("TCP Connected.");
   } else {
     Serial.println("Connection failed.");
     while(1) {
@@ -59,35 +139,45 @@ void setup() {
       // Hang on failure
     }  
   }
-
 }
 
+/**
+ * スピードを制御する.
+ * 
+ * @param num 
+ */
+void speedCntrol(int num) {
+  Serial.print("Called speedCntrol : ");
+  Serial.println(num);
+  boolean leftPin = HIGH;
+  boolean rightPin = LOW;
+  int speed = abs(num) * 10;
 
-void loop() {
-  String data;
-
-  if (client.connected()) {
-    webSocketClient.sendData("connect !!!! ");
-    webSocketClient.getData(data);
-    if (data.length() > 0) {
-      Serial.print("Received data: ");
-      Serial.println(data);
-    }
-    delay(1000);
-    // capture the value of analog 1, send it along
-    //pinMode(1, INPUT);
-    //data = String(analogRead(1));
-    
-    webSocketClient.sendData(data);
-    
-  } else {
-    Serial.println("Client disconnected.");
-    while (1) {
-      // Hang on disconnect.
-    }
+  if (num < 0) {
+      leftPin = LOW;
+      rightPin = HIGH;
+  } else if (num == 0) {
+      leftPin = LOW;
+      rightPin = LOW;
   }
-  
-  // wait to fully let the client disconnect
-  delay(3000);
-  
+
+  analogWrite(MOTOR_PWM, speed);
+  digitalWrite(MOTOR_LEFT, leftPin);
+  digitalWrite(MOTOR_RIGHT, rightPin);
 }
+
+/**
+ * ハンドル制御.
+ * 
+ * 0:90  1:80    2:70   3:60   4:50   5:40
+ * 0:90 -1:-100 -2:110 -3:120 -4:130 -5:140
+ *
+ * @param num
+ */
+void servoControl(int num) {
+  Serial.print("Called serverControl : ");
+  Serial.println(num);
+  int angle = 90 + (num * 10);
+  myservo.write(angle);
+}
+
