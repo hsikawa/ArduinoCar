@@ -32,6 +32,7 @@ public class ClientEndpoint {
         Operation o = JsonUtil.toObject(msg);
         SessionContainer container = SessionUtil.getContainer(o.carNo);
         if (container != null) {
+            container.client = session;
             container.arduino.getBasicRemote().sendText(msg);
         }
     }
