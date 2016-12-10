@@ -9,12 +9,13 @@
 	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
 <style type="text/css">
 .circle {
-	position:relative;
+    position:relative;
 	display: inline-block;
 	text-align: center;
 	width: 70%;
 	border-radius: 50%;
 	border: 2px solid #1d2087;
+	cursor: move;
 }
 
 .cross1 {
@@ -80,8 +81,8 @@ input[type="radio"]:checked+label {
 			<br>
 			<div class="col-sm-12 text-center">
 				<div class="circle">
-				<div class="cross1"></div>
-				<div class="cross2"></div>
+					<div class="cross1"></div>
+					<div class="cross2"></div>
 				</div>
 			</div>
 		</div>
@@ -92,6 +93,7 @@ var socketFlag = false;
 var carNo = null;
 var speed = 0;
 var handle = 0;
+var clCode = ["#FFFFFF", "#F0FFFF", "#87CEFA", "#FFA07A", "#FF69B4", "#FF0000"];
 
 var url = "ws://" + location.host + "/arduino/client";
 var ws = null;
@@ -110,7 +112,7 @@ function open(){
 				var id = "car" + key;
 				if(json[i][key]){
 					$('.btn-group').append('<label id="'+id+'" class="btn btn-primary btn-lg">');
-					$('.btn-group').children('#'+id).append('<input type="radio" autocomplete="off" value="'+key+'" name="carNo" >', key);
+					$('.btn-group').children('#'+id).append('<input type="radio" autocomplete="off" value="' + key + '" name="carNo" >', key);
 				}
 			}
 		}
@@ -123,12 +125,70 @@ function open(){
 	};
 
 	ws.onclose = function(){
-		alert("接続が切れました");
+		if(socketFlag && flag){
+			alert("接続が切れました");
+		}
 		socketFlag = false;
 		flag = false;
 		carNo = null;
 		open();
 	}
+}
+
+function sendJson(){
+	var json = {"carNo":carNo, "speed":speed, "handle":handle};
+	$(".circle").css("background-color", clCode[Math.abs(speed)]);
+    if(socketFlag) {
+		ws.send(JSON.stringify(json));
+	    console.log(json);
+	}
+}
+
+function start() {
+    if(carNo != null) {
+        flag = true;
+        sendJson()
+    }
+}
+
+function end() {
+	if(flag){
+	    flag = false;
+	    speed = 0;
+	    handle = 0;
+		sendJson()
+	}
+}
+
+function move(moveX, moveY) {
+    if(!flag){
+        return;
+    }
+
+    var x = 0;
+    if (moveX > 0) {
+        x = (moveX - $(".circle").width() / 2) / $(".circle").width() * 10;
+    }
+    var y = 0;
+    if (moveY > 0) {
+        y = ($(".circle").height() / 2 - moveY) / $(".circle").height() * 10;
+    }
+    var tempSpeed = Math.round((Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))));
+    if (y < 0) {
+        tempSpeed = -1;
+    }
+
+    var tempHandle = Math.round(Math.atan2(x, Math.abs(y))/Math.PI * 10);
+    if (tempHandle == -0) {
+        tempHandle = 0;
+    }
+
+    if(tempSpeed != speed || tempHandle != handle){
+        speed = tempSpeed;
+        handle = tempHandle;
+
+        sendJson();
+    }
 }
 
 open();
@@ -152,118 +212,21 @@ $(window).resize(function() {
 });
 
 $(".circle").mousedown(function(){
-    if(carNo != null) {
-        flag = true;
-
-		var json = {"carNo":carNo, "speed":speed, "handle":handle}
-        console.log(json);
-        ws.send(JSON.stringify(json));
-    }
+	start();
 }).mouseleave(function(){
-	if(!flag){
-		return;
-	}
-        flag = false;
-        speed = 0;
-        handle = 0;
-
-	var json = {"carNo":carNo, "speed":speed, "handle":handle}
-        console.log(json);
-        if(socketFlag) {
-            ws.send(JSON.stringify(json));
-        }
+	end();
 }).mouseup(function(){
-	if(!flag){
-		return;
-	}
-	flag = false;
-        speed = 0;
-        handle = 0;
-
-	var json = {"carNo":carNo, "speed":speed, "handle":handle}
-        console.log(json);
-        if(socketFlag) {
-        	ws.send(JSON.stringify(json));
-        }
+	end();
 }).mousemove(function(e){
-    if(!flag){
-        return;
-    }
-
-    var x = (e.offsetX - $(this).width() / 2) / $(this).width() * 10;
-    var y = ($(this).height() / 2 - e.offsetY) / $(this).height() * 10;
-
-    var tempSpeed = Math.round((Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))));
-    if (y < 0) {
-        tempSpeed = -1;
-    }
-
-    var tempHandle = Math.round(Math.atan2(x, Math.abs(y))/Math.PI * 10);
-    if (tempHandle == -0) {
-        tempHandle = 0;
-    }
-
-    if(tempSpeed != speed || tempHandle != handle){
-        speed = tempSpeed;
-        handle = tempHandle;
-
-	var json = {"carNo":carNo, "speed":speed, "handle":handle}
-        console.log(json);
-        if(socketFlag) {
-        	ws.send(JSON.stringify(json));
-        }
-    }
-});
-$(".circle").bind('touchstart',function(){
-    if(carNo != null) {
-        flag = true;
-
-		var json = {"carNo":carNo, "speed":speed, "handle":handle}
-        console.log(json);
-        ws.send(JSON.stringify(json));
-    }
+	move(e.offsetX, e.offsetY);
+}).bind('touchstart',function(){
+	start();
 }).bind('touchend',function(){
-	if(!flag){
-		return;
-	}
-	flag = false;
-        speed = 0;
-        handle = 0;
-
-	var json = {"carNo":carNo, "speed":speed, "handle":handle}
-        console.log(json);
-        if(socketFlag) {
-        	ws.send(JSON.stringify(json));
-        }
+	end();
 }).bind('touchmove',function(e){
-    if(!flag){
-        return;
-    }
-
-    var x = (e.originalEvent.changedTouches[0].pageX - $(this).offset().top - $(this).width() / 2) / $(this).width() * 10;
-    var y = ($(this).height() / 2 - e.originalEvent.changedTouches[0].pageY + $(this).offset().left) / $(this).height() * 10;
-
-    var tempSpeed = Math.round((Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))));
-    if (y < 0) {
-        tempSpeed = -1;
-    }
-
-    var tempHandle = Math.round(Math.atan2(x, Math.abs(y))/Math.PI * 10);
-    if (tempHandle == -0) {
-        tempHandle = 0;
-    }
-
-    if(tempSpeed != speed || tempHandle != handle){
-        speed = tempSpeed;
-        handle = tempHandle;
-
-	var json = {"carNo":carNo, "speed":speed, "handle":handle}
-        console.log(json);
-        if(socketFlag) {
-        	ws.send(JSON.stringify(json));
-        }
-    }
+	move(e.originalEvent.changedTouches[0].pageX - $(this).offset().top, e.originalEvent.changedTouches[0].pageY - $(this).offset().left);
 });
+
 </script>
 </body>
 </html>
