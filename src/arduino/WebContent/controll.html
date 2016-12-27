@@ -87,7 +87,7 @@ input[type="radio"]:checked+label {
 			</div>
 		</div>
 	</div>
-	インターバル(ms)<input type="text" id="count">
+	インターバル(ms)<input type="text" id="interval">
 	<script type="text/javascript">
 var flag = false;
 var socketFlag = false;
@@ -238,8 +238,8 @@ function loop () {
 	}
 loop();
 
-$("#count").keyup(function(){
-	var time = $("#count").val();
+$("#interval").keyup(function(){
+	var time = $("#interval").val();
 	timeCount = time;
 });
 </script>
