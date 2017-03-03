@@ -55,7 +55,14 @@ public class ArduinoEndpoint {
      * 接続エラーが発生したとき
      */
     @OnError
-    public void onError(Session session, Throwable t) {
+    public void onError(Session session, Throwable t) throws IOException {
         System.out.println("on error arduino " + session);
+        SessionContainer container = SessionUtil.getContainer(session);
+        if (container != null && container.client != null) {
+            container.client.close();
+            container.client = null;
+
+        }
+        SessionUtil.remove(container);
     }
 }
