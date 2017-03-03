@@ -5,9 +5,11 @@
 
 const char* ssid     = "0024A5326C0B";
 const char* password = "1pcem23pnjh2n";
-char path[] = "/";
-char host[] = "192.168.0.2";
-int port = 3000;
+char path[] = "/arduino/arduino";
+//char host[] = "192.168.0.2";
+//int port = 3000;
+char host[] = "192.168.0.19";
+int port = 8080;
 
 /** サーボ用のオブジェクト. **/
 Servo myservo;
@@ -25,8 +27,6 @@ WiFiClient client;
 /** WebSocket クライアント */
 WebSocketClient webSocketClient;
 
-/** JSONパース用バッファ */
-StaticJsonBuffer<200> jsonBuffer;
 // 
 const char* JSON_SPEED_KEY = "speed";
 const char* JSON_HANDLE_KEY = "handle";
@@ -52,17 +52,17 @@ int position = 0;
 String sendData = "aaa";
 
 void loop() {
-  servoControl(5);
-  delay(1000);
-  servoControl(-5);
-  delay(500);
-  speedCntrol(0);
-  delay(500);
-  speedCntrol(3);
-  delay(3000);
-  speedCntrol(0);
-  delay(3000);
-  speedCntrol(-3);
+//  servoControl(5);
+//  delay(1000);
+//  servoControl(-5);
+//  delay(500);
+//  speedCntrol(0);
+//  delay(500);
+//  speedCntrol(3);
+//  delay(3000);
+//  speedCntrol(0);
+//  delay(3000);
+//  speedCntrol(-3);
   String recvData = "";
   if (client.connected()) {
     Serial.println("Before getData");
@@ -70,8 +70,12 @@ void loop() {
     if (recvData.length() > 0) {
       Serial.print("Received data: ");
       Serial.println(recvData);
+
+      /** JSONパース用バッファ */
+      StaticJsonBuffer<200> jsonBuffer;
       // parse to json.
       JsonObject& root = jsonBuffer.parseObject(recvData);
+
       int servo = root[JSON_HANDLE_KEY];
       Serial.print("Servo control = ");
       Serial.println(servo);
@@ -89,7 +93,7 @@ void loop() {
   }
 
   // wait to fully let the client disconnect
-  delay(3000);
+  delay(100);
   position++;
 }
 
@@ -151,12 +155,14 @@ void speedCntrol(int num) {
   Serial.println(num);
   boolean leftPin = HIGH;
   boolean rightPin = LOW;
-  int speed = abs(num) * 10;
+  int speed = abs(num) * 45;
 
   if (num < 0) {
+  Serial.println("mainas");
       leftPin = LOW;
       rightPin = HIGH;
   } else if (num == 0) {
+  Serial.println("zero");
       leftPin = LOW;
       rightPin = LOW;
   }
